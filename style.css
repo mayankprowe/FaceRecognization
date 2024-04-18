@@ -1,0 +1,138 @@
+* {
+  box-sizing: border-box;
+}
+
+/*#main-dropdown-dropdown{
+        position: absolute;
+        z-index: 10000;
+        background-color: white;
+        width : 100%;
+        margin: 0 0 1em;
+    }*/
+
+#main-dropdown-dropdown-container {
+  position: relative;
+  z-index: 10000;
+}
+
+#main-dropdown-dropdown {
+  position: absolute;
+  background-color: white;
+  width: 100%;
+  margin: 0 0 1em;
+}
+
+#dropdown-dropdown {
+  position: relative;
+  width: 100%;
+  height: 14rem;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  display: none;
+}
+
+#dropdown-dropdown {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+#dropdown-dropdown::-webkit-scrollbar {
+  width: 0;
+}
+
+.dropdown-dropdown-item {
+  position: relative;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.inner-dropdown-dropdown:hover {
+  background-color: #5897fb;
+  color: white;
+}
+.inner-dropdown-dropdown2:hover {
+  background-color: #ff9f9f;
+  color: white;
+}
+.inner-dropdown-dropdown3:hover {
+  background-color: #b3ffc0;
+  color: black;
+}
+
+#dropdown-dropdown-search {
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+#dropdown-toggle-button {
+  position: relative;
+  width: 100%;
+  height: calc(3em + 2px);
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 0.7em;
+  padding: 0.5em 1.5em 0.5em 1em;
+}
+
+#dropdown-toggle-button::before {
+  position: absolute;
+  content: "";
+  border-color: #888 transparent transparent transparent;
+  border-style: solid;
+  border-width: 5px 4px 0 4px;
+  left: 93%;
+  top: 45%;
+}
+
+.up::before {
+  position: absolute;
+  content: "";
+  border-style: solid;
+  border-color: transparent transparent #888 transparent !important;
+  border-width: 0 4px 5px 4px !important;
+  left: 93%;
+  top: 45%;
+}
+
+#dropdown-dropdown-search {
+  border: 1px solid #aaa;
+  padding: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#dropdown-search-div {
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: block;
+  padding: 4px;
+  background-color: #fff;
+}
+
+.down-arrow::before {
+  position: absolute;
+  content: "";
+  border-color: #888 transparent transparent transparent;
+  border-style: solid;
+  border-width: 5px 4px 0 4px;
+  left: 93%;
+  top: 45%;
+}
+
+.optionDiv {
+  position: relative;
+  padding-left: 1.5%;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+.optionDiv2 {
+  position: relative;
+  padding-left: 1.5%;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}

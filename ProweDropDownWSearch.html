@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        /*#main-dropdown-dropdown{
+        position: absolute;
+        z-index: 10000;
+        background-color: white;
+        width : 100%;
+        margin: 0 0 1em;
+    }*/
+
+        #main-dropdown-dropdown-container {
+            position: relative;
+            z-index: 10000;
+        }
+
+        #main-dropdown-dropdown {
+            position: absolute;
+            background-color: white;
+            width: 100%;
+            margin: 0 0 1em;
+        }
+
+        #dropdown-dropdown {
+            position: relative;
+            width: 100%;
+            height: 14rem;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            display: none;
+        }
+
+        #dropdown-dropdown {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        #dropdown-dropdown::-webkit-scrollbar {
+            width: 0;
+        }
+
+        .dropdown-dropdown-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .dropdown-dropdown-item:hover {
+            background-color: #5897fb;
+            color: white;
+        }
+
+        #dropdown-dropdown-search {
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        #dropdown-toggle-button {
+            position: relative;
+            width: 100%;
+            height: calc(3em + 2px);
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 0.7em;
+            padding: 0.5em 1.5em 0.5em 1em;
+        }
+
+        #dropdown-toggle-button::before {
+            position: absolute;
+            content: '';
+            border-color: #888 transparent transparent transparent;
+            border-style: solid;
+            border-width: 5px 4px 0 4px;
+            left: 93%;
+            top: 45%;
+        }
+
+        .up::before {
+            position: absolute;
+            content: '';
+            border-style: solid;
+            border-color: transparent transparent #888 transparent !important;
+            border-width: 0 4px 5px 4px !important;
+            left: 93%;
+            top: 45%;
+        }
+
+        #dropdown-dropdown-search {
+            border: 1px solid #aaa;
+            padding: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #dropdown-search-div {
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            display: block;
+            padding: 4px;
+            background-color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="display: none;">Total Search results : <span id="dropdown-count">0</span></div>
+    <div style="display: none;">Selected Value : <span id="dropdown-selected-value"></span></div>
+    <div id="mainload" style="background-color: rgb(255, 78, 78);"> <strong><span id="load">Loading....</span></strong>
+        <div id="main-dropdown-dropdown-container">
+            <div id="main-dropdown-dropdown" class="w-100">
+                <div id="dropdown-toggle-button" class="" readonly>Select</div>
+
+                <div id="dropdown-dropdown" style="display: none;">
+                    <div id="dropdown-search-div">
+                        <input type="text" id="dropdown-dropdown-search">
+                    </div>
+
+                    <div id="dropdown-dropdown-content"></div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            let mainObj;
+            async function loadData() {
+                try {
+                    const response = await fetch("./UNSPSC.json");
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch data");
+                    }
+                    mainObj = await response.json();
+
+                    document.getElementById("load").innerHTML = "Loaded...";
+                    document.getElementById("mainload").style.backgroundColor =
+                        "rgb(49, 255, 49)";
+                    document.getElementById("main-dropdown-dropdown-container").style.display =
+                        "block";
+                } catch (error) {
+                    console.error("Error loading JSON:", error);
+                }
+            }
+            loadData();
+            const toggleButton = document.getElementById('dropdown-toggle-button');
+            const dropdown = document.getElementById('dropdown-dropdown');
+            const dropdownContent = document.getElementById('dropdown-dropdown-content');
+            const dropdownSearch = document.getElementById('dropdown-dropdown-search');
+            const selectedValue = document.getElementById('dropdown-selected-value');
+            const count = document.getElementById('dropdown-count');
+            const batchSize = 10; // Number of options to load at a time
+            const totalOptions = 200001; // Total number of options available
+            let loadedOptions = 0;
+            // const mainObj = JSON.parse('@Html.Raw(decodedJson)');
+
+            // @*const mainObj = Array.from({ length: totalOptions }, (_, index) => ({
+            //     id: index,
+            //     value: 'Option ' + index,
+            // }));* @
+
+            // @*const mainObj = '@json';* @
+
+            //function for click detection outside toogle-button
+            window.onclick = function (event) {
+                if (!event.target.matches('#dropdown-toggle-button') && !event.target.matches('#dropdown-dropdown-search')) {
+                    var dropdowns = document.getElementById('dropdown-dropdown');
+                    if (dropdowns.style.display == 'block') {
+                        dropdowns.style.display = 'none';
+                        toggleButton.classList.toggle('up');
+                        dropdown.scrollTop = 0;
+                        dropdownContent.innerHTML = '';
+                    }
+                }
+            }
+
+            function populateDropdown(start, end) {
+                for (let i = start; i <= end; i++) {
+                    const option = document.createElement('div');
+                    option.classList.add('dropdown-dropdown-item');
+                    option.textContent = mainObj[i - 1].Id + '. ' + mainObj[i - 1].Text;
+                    option.setAttribute("value", mainObj[i - 1].Id);
+                    option.addEventListener('click', () => {
+                        selectedValue.innerHTML = event.target.attributes.value.value
+                        toggleButton.innerHTML = event.target.attributes.value.value
+                    });
+                    dropdownContent.appendChild(option);
+                }
+            }
+
+            function lazyLoadOptions() {
+                const scrollOffset = dropdownContent.scrollTop;
+                const scrollHeight = dropdownContent.scrollHeight;
+                const clientHeight = dropdownContent.clientHeight;
+                if (scrollOffset + clientHeight >= scrollHeight - 10 && loadedOptions <= totalOptions && (dropdownSearch.value == '' || dropdownSearch.value == null)) {
+                    const start = loadedOptions + 1;
+                    const end = Math.min(loadedOptions + batchSize, totalOptions - 1);
+                    populateDropdown(start, end);
+                    loadedOptions = end;
+                }
+            }
+
+            toggleButton.addEventListener('click', () => {
+                dropdownSearch.value = '';
+                toggleButton.classList.toggle('up');
+                dropdown.scrollTop = 0;
+                if (dropdown.style.display === 'none') {
+                    dropdown.style.display = 'block';
+                    // Initialize the dropdown with initial options
+                    populateDropdown(1, batchSize);
+                    loadedOptions = batchSize;
+                    dropdown.addEventListener('scroll', lazyLoadOptions);
+                } else {
+                    dropdown.style.display = 'none';
+                    dropdownContent.innerHTML = ''; // Clear the loaded options
+                    loadedOptions = 0;
+                    dropdown.removeEventListener('scroll', lazyLoadOptions);
+                }
+            });
+
+            //serachhhhh
+
+            dropdownSearch.addEventListener('input', handleSearch);
+
+            let filteredResults;
+            function handleSearch() {
+                dropdownContent.innerHTML = '';
+                const searchTerm = dropdownSearch.value.toString().toLowerCase();
+                filteredResults = mainObj.filter(item => item.Text.toString().toLowerCase().includes(searchTerm));
+                count.innerHTML = filteredResults.length;
+
+                displayResults(filteredResults);
+                dropdown.scrollTop = 0
+            }
+
+            function displayResults(results) {
+                if (dropdown.style.display === 'none') {
+                    dropdown.style.display = 'block';
+                }
+                // Initialize the dropdown with initial options
+                populateDropdownSearch(1, batchSize);
+                loadedOptionsSearch = batchSize;
+                dropdown.addEventListener('scroll', lazyLoadOptionsSearch);
+            }
+
+            function lazyLoadOptionsSearch() {
+                const scrollOffset = dropdownContent.scrollTop;
+                const scrollHeight = dropdownContent.scrollHeight;
+                const clientHeight = dropdownContent.clientHeight;
+                if (scrollOffset + clientHeight >= scrollHeight - 10 && loadedOptionsSearch <= totalOptions && (dropdownSearch.value != '' && dropdownSearch.value != null)) {
+                    const start = loadedOptionsSearch + 1;
+                    const end = Math.min(loadedOptionsSearch + batchSize, totalOptions - 1);
+                    populateDropdownSearch(start, end);
+                    loadedOptionsSearch = end;
+                }
+            }
+
+            function populateDropdownSearch(start, end) {
+                for (let i = start; i <= end; i++) {
+                    const option = document.createElement('div');
+                    option.classList.add('dropdown-dropdown-item');
+                    option.textContent = filteredResults[i - 1].Id + '. ' + filteredResults[i - 1].Text;
+                    option.setAttribute("value", filteredResults[i - 1].Id);
+                    option.addEventListener('click', () => {
+                        selectedValue.innerHTML = event.target.attributes.value.value
+                        toggleButton.innerHTML = event.target.attributes.value.value
+                    });
+                    dropdownContent.appendChild(option);
+                }
+            }
+        </script>
+
+</body>
+
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div style="display: none;">Total Search results : <span id="dropdown-count">0</span></div>
+    <div style="display: none;">Selected Value : <span id="dropdown-selected-value"></span></div>
+    <div id="mainload" style="background-color: rgb(255, 78, 78);"> <strong><span id="load">Loading....</span></strong>
+    </div>
+    <br>
+    <div id="main-dropdown-dropdown-container">
+        <div id="main-dropdown-dropdown" class="w-100">
+            <input type="hidden" id="hdnselectedValue" />
+            <div id="dropdown-toggle-button" class="" readonly>Select</div>
+            <label alt="Placeholder" placeholder="vv" class="select-label @required"> </label>
+            <div id="dropdown-dropdown" style="display: none;">
+                <div id="dropdown-search-div">
+                    <input type="text" id="dropdown-dropdown-search">
+                </div>
+                <div id="dropdown-dropdown-content"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- <script src="script.js"></script> -->
+    <script>
+        let mainObj;
+        async function loadData() {
+            try {
+                // const response = await fetch('./large-file.json');
+                // const response = await fetch('./large-file2.json');
+                // const response = await fetch("./mockturtle.json");
+                const response = await fetch("./UNSPSC.json");
+                if (!response.ok) {
+                    throw new Error("Failed to fetch data");
+                }
+                mainObj = await response.json();
+
+                document.getElementById("load").innerHTML = "Loaded...";
+                document.getElementById("mainload").style.backgroundColor =
+                    "rgb(49, 255, 49)";
+                document.getElementById("main-dropdown-dropdown-container").style.display =
+                    "block";
+            } catch (error) {
+                console.error("Error loading JSON:", error);
+            }
+        }
+        loadData();
+
+        const toggleButton = document.getElementById("dropdown-toggle-button");
+        const dropdown = document.getElementById("dropdown-dropdown");
+        const dropdownContent = document.getElementById("dropdown-dropdown-content");
+        const dropdownSearch = document.getElementById("dropdown-dropdown-search");
+        const selectedValue = document.getElementById("dropdown-selected-value");
+        const count = document.getElementById("dropdown-count");
+        const hdnselectedValue = document.getElementById("hdnselectedValue");
+        const batchSize = 10;
+        let loadedOptions = 0, loadedOptions2 = 0, loadedOptions3 = 0;
+        let showNameInDropDownKey = "Text";
+        let selectionKeyName = "OrignalId";
+        let chidArrayName = "children";
+
+
+        //function for click detection outside toogle-button
+        window.onclick = function (event) {
+            if (
+                !event.target.matches("#dropdown-toggle-button") &&
+                !event.target.matches("#dropdown-dropdown-search") &&
+                !event.target.matches(".down-arrow")
+            ) {
+                var dropdowns = document.getElementById("dropdown-dropdown");
+                if (dropdowns.style.display == "block") {
+                    dropdowns.style.display = "none";
+                    toggleButton.classList.toggle("up");
+                    dropdown.scrollTop = 0;
+                    loadedOptions = 0;
+                    loadedOptions2 = 0;
+                    loadedOptions3 = 0;
+                    dropdownContent.innerHTML = "";
+                    dropdown.removeEventListener("scroll", lazyLoadOptions);
+                }
+            }
+        };
+
+        function populateDropdown(start, end) {
+            for (let i = start; i <= end; i++) {
+                if (mainObj && mainObj[i - 1]) {
+                    const option = document.createElement("div");
+                    const optionDiv = document.createElement("div");
+                    optionDiv.classList.add("optionDiv");
+                    optionDiv.style.display = "none";
+                    option.classList.add("dropdown-dropdown-item", "inner-dropdown-dropdown");
+                    option.textContent = mainObj[i - 1][showNameInDropDownKey];
+                    option.setAttribute("value", mainObj[i - 1][selectionKeyName]);
+
+                    function clickEvent($event) {
+                        document
+                            .querySelectorAll(".inner-dropdown-dropdown")
+                            .forEach(function (element) {
+                                if (element != $event.target) {
+                                    element.classList.remove("up");
+                                }
+                            });
+                        let targetElement = $event.target;
+                        option.classList.toggle("up");
+                        option.scrollTop = 0;
+                        function scrollListener2() {
+                            if (option.classList.contains("up") && targetElement.nextSibling) {
+                                const index = i - 1;
+                                lazyLoadOptions2(targetElement, optionDiv, index);
+                            }
+                        };
+                        if (optionDiv.style.display === "none") {
+                            document.querySelectorAll(".optionDiv").forEach(function (element) {
+                                element.innerHTML = "";
+                                element.style.display = "none";
+                                loadedOptions2 = 0;
+                            });
+
+                            optionDiv.style.display = "block";
+                            // Initialize the dropdown with initial options
+                            populateDropdown2(i - 1, $event.target, 1, batchSize);
+                            loadedOptions2 = batchSize;
+                            dropdown.addEventListener("scroll", scrollListener2);
+                        } else {
+                            optionDiv.style.display = "none";
+                            optionDiv.innerHTML = "";
+                            loadedOptions2 = 0;
+                            dropdown.removeEventListener("scroll", scrollListener2);
+                        }
+                    };
+                    if (mainObj[i - 1][chidArrayName]) {
+                        option.classList.add("down-arrow");
+                        option.removeEventListener("click", clickEvent)
+                        option.addEventListener("click", clickEvent)
+                    }
+                    dropdownContent.appendChild(option);
+                    option.after(optionDiv);
+                }
+            }
+        }
+
+        function populateDropdown2(index, target, start, end) {
+            var mainObjSecond = mainObj[index][chidArrayName];
+            for (let j = start; j <= end; j++) {
+                if (mainObjSecond && mainObjSecond[j - 1]) {
+                    const option2 = document.createElement("div");
+                    const optionDiv2 = document.createElement("div");
+                    optionDiv2.classList.add("optionDiv2");
+                    optionDiv2.style.display = "none";
+                    option2.classList.add(
+                        "dropdown-dropdown-item",
+                        "inner-dropdown-dropdown2"
+                    );
+                    option2.textContent = mainObjSecond[j - 1][showNameInDropDownKey];
+                    option2.setAttribute(
+                        "value",
+                        mainObjSecond[j - 1][selectionKeyName]
+                    );
+                    function clickEvent2($event) {
+                        document
+                            .querySelectorAll(".inner-dropdown-dropdown2")
+                            .forEach(function (element) {
+                                if (element != $event.target) {
+                                    element.classList.remove("up");
+                                }
+                            });
+                        let targetElement = $event.target;
+                        option2.classList.toggle("up");
+                        option2.scrollTop = 0;
+                        function scrollListener3() {
+                            if (option2.classList.contains("up") && targetElement.nextSibling) {
+                                const index2 = j - 1;
+                                lazyLoadOptions3(index2, targetElement, optionDiv2, index);
+                            }
+                        };
+                        if (optionDiv2.style.display === "none") {
+                            document.querySelectorAll(".optionDiv2").forEach(function (element) {
+                                element.innerHTML = "";
+                                element.style.display = "none";
+                                loadedOptions3 = 0;
+                            });
+                            optionDiv2.style.display = "block";
+                            populateDropdown3(index, j - 1, $event.target, 1, batchSize);
+                            loadedOptions3 = batchSize;
+                            dropdown.addEventListener("scroll", scrollListener3);
+                        } else {
+                            optionDiv2.style.display = "none";
+                            optionDiv2.innerHTML = "";
+                            loadedOptions3 = 0;
+                            dropdown.removeEventListener("scroll", scrollListener3);
+                        }
+                    };
+                    if (mainObjSecond[j - 1][chidArrayName]) {
+                        option2.classList.add("down-arrow");
+                        option2.removeEventListener("click", clickEvent2)
+                        option2.addEventListener("click", clickEvent2)
+                    }
+                    target.nextSibling.appendChild(option2);
+                    option2.after(optionDiv2);
+                }
+            }
+        }
+
+        function populateDropdown3(index1, index2, target, start, end) {
+            var selectedOption2 = target;
+            var mainObjSecond2 = mainObj[index1][chidArrayName][index2][chidArrayName];
+            for (let k = start; k <= end; k++) {
+                if (mainObjSecond2 && mainObjSecond2[k - 1]) {
+                    const option3 = document.createElement("div");
+                    option3.classList.add(
+                        "dropdown-dropdown-item",
+                        "inner-dropdown-dropdown3"
+                    );
+                    option3.textContent = mainObjSecond2[k - 1][showNameInDropDownKey];
+                    option3.setAttribute(
+                        "value",
+                        mainObjSecond2[k - 1][selectionKeyName]
+                    );
+                    if (mainObjSecond2[k - 1][chidArrayName]) {
+                        option3.classList.add("down-arrow");
+                    }
+                    option3.addEventListener("click", () => {
+                        selectedValue.innerHTML = event.target.attributes.value.value;
+                        toggleButton.innerHTML = event.target.innerHTML;
+                        hdnselectedValue.value = event.target.attributes.value.value;
+                    });
+                    selectedOption2.nextSibling.appendChild(option3);
+                }
+            }
+        }
+
+        function lazyLoadOptions() {
+            const scrollOffset = dropdownContent.scrollTop;
+            const scrollHeight = dropdownContent.scrollHeight;
+            const clientHeight = dropdownContent.clientHeight;
+            if (
+                scrollOffset + clientHeight >= scrollHeight - 10 &&
+                loadedOptions <= mainObj.length + 1 &&
+                (dropdownSearch.value == "" || dropdownSearch.value == null)
+            ) {
+                const start = loadedOptions + 1;
+                const end = Math.min(loadedOptions + batchSize, mainObj.length + 1 - 1);
+                populateDropdown(start, end);
+                loadedOptions = end;
+            }
+        }
+
+        function lazyLoadOptions2(target, scrollDiv, ind) {
+            const scrollOffset = scrollDiv.scrollTop;
+            const scrollHeight = scrollDiv.scrollHeight;
+            const clientHeight = scrollDiv.clientHeight;
+            if (
+                scrollOffset + clientHeight >= scrollHeight - 10 &&
+                loadedOptions2 < mainObj[ind][chidArrayName].length &&
+                (dropdownSearch.value == "" || dropdownSearch.value == null)
+            ) {
+                const start = loadedOptions2 + 1;
+                const end = Math.min(
+                    loadedOptions2 + batchSize,
+                    mainObj[ind][chidArrayName].length
+                );
+                populateDropdown2(ind, target, start, end);
+                loadedOptions2 = end;
+            }
+        }
+
+        function lazyLoadOptions3(index2, target, scrollDiv, index1) {
+            const scrollOffset = scrollDiv.scrollTop;
+            const scrollHeight = scrollDiv.scrollHeight;
+            const clientHeight = scrollDiv.clientHeight;
+            if (
+                scrollOffset + clientHeight >= scrollHeight - 10 &&
+                loadedOptions3 <
+                mainObj[index1][chidArrayName][index2][chidArrayName].length &&
+                (dropdownSearch.value == "" || dropdownSearch.value == null)
+            ) {
+                const start = loadedOptions3 + 1;
+                const end = Math.min(
+                    loadedOptions3 + batchSize,
+                    mainObj[index1][chidArrayName][index2][chidArrayName].length
+                );
+                populateDropdown3(index1, index2, target, start, end);
+                loadedOptions3 = end;
+            }
+        }
+
+        toggleButton.addEventListener("click", () => {
+            dropdownSearch.value = "";
+            toggleButton.classList.toggle("up");
+            dropdown.scrollTop = 0;
+            if (dropdown.style.display === "none") {
+                dropdown.style.display = "block";
+                populateDropdown(1, batchSize);
+                loadedOptions = batchSize;
+                dropdown.addEventListener("scroll", lazyLoadOptions);
+            } else {
+                dropdown.style.display = "none";
+                loadedOptions = 0;
+                loadedOptions2 = 0;
+                loadedOptions3 = 0;
+                dropdown.removeEventListener("scroll", lazyLoadOptions);
+            }
+        });
+    </script>
+</body>
+
+</html>
